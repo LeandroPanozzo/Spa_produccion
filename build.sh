@@ -2,11 +2,20 @@
 # Exit on error
 set -o errexit
 
-# Modify this line as needed for your package manager (pip, poetry, etc.)
+# Instala los paquetes requeridos
 pip install -r requirements.txt
 
-# Convert static asset files
+# Convierte los archivos de estáticos
 python manage.py collectstatic --no-input
 
-# Apply any outstanding database migrations
+# Aplica las migraciones pendientes
 python manage.py migrate
+
+# Crear un superusuario automáticamente si no existe
+if [ -z "$(echo "from django.contrib.auth import get_user_model; User = get_user_model(); print(User.objects.filter(is_superuser=True).exists())" | python manage.py shell)" ]; then
+    echo "Creando superusuario..."
+    python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@example.com', 'adminpassword')"
+else
+    echo "Superusuario ya existe."
+fi
+# 'admin', 'admin@example.com' y 'adminpassword'
