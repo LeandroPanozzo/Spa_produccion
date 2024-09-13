@@ -10,7 +10,7 @@ python manage.py collectstatic --no-input
 
 # Aplica las migraciones pendientes
 python manage.py migrate
-export DJANGO_SUPERUSER_USERNAME = admin
+export DJANGO_SUPERUSER_USERNAME=admin
 export DJANGO_SUPERUSER_EMAIL=test@test.com
 export DJANGO_SUPERUSER_PASSWORD=testpass123498765
  python manage.py createsuperuser --no-input
