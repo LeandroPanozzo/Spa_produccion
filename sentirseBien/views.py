@@ -1,5 +1,5 @@
 from rest_framework import viewsets, permissions, status, generics
-from rest_framework.response import Response
+from rest_framework.response import Response as httpResponce
 from rest_framework.decorators import action
 from .models import Profile, Post
 from django.contrib.auth.models import User
@@ -7,7 +7,6 @@ from rest_framework.permissions import AllowAny
 from .serializer import ProfileSerializer, PostSerializer, RegisterSerializer, UserDetailSerializer, CustomTokenObtainPairSerializer, QuerySerializer, ResponseSerializer, AppointmentSerializer, ServiceSerializer, AnnouncementSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import serializers
-from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .permissions import IsStaffAndReadOrEditOnly, IsStaff
 from rest_framework.permissions import IsAuthenticated
@@ -115,7 +114,7 @@ class RegisterView(generics.CreateAPIView):
         user = serializer.save()
         
         refresh = RefreshToken.for_user(user)
-        return Response({
+        return httpResponce({
             "user": RegisterSerializer(user, context=self.get_serializer_context()).data,
             "refresh": str(refresh),
             "access": str(refresh.access_token),
