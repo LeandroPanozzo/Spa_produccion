@@ -104,7 +104,7 @@ DATABASES = {
     ##Codigo para coneccion de base de datos en produccion
     'default': dj_database_url.config(
     #     # Replace this value with your local database's connection string.
-         default='postgresql://sentirsebiensql_user:6HriPyNEp5aLWVfjCiqz3aWIRkCx6fM3@dpg-csa62ud6l47c73etq2sg-a.oregon-postgres.render.com/sentirsebiensql',
+         default='postgresql://sentirsebiensql_user:6HriPyNEp5aLWVfjCiqz3aWIRkCx6fM3@dpg-csa62ud6l47c73etq2sg-a/sentirsebiensql',
          conn_max_age=600
     )
 }
