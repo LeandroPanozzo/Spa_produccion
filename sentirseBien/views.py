@@ -92,6 +92,8 @@ class ProfessionalAppointmentsViewSet(viewsets.ReadOnlyModelViewSet):
             return Appointment.objects.filter(professional=user, appointment_date__gte=today).order_by('appointment_date')
         return Appointment.objects.none()  # Si no es profesional, no retorna nada
 
+from django.utils.cache import add_never_cache_headers
+
 class PaymentTypeView(viewsets.ViewSet):
     queryset = PaymentType.objects.all()
     serializer_class = PaymentTypeSerializer
@@ -99,7 +101,9 @@ class PaymentTypeView(viewsets.ViewSet):
     def list(self, request):
         queryset = self.queryset
         serializer = self.serializer_class(queryset, many=True)
-        return Response(serializer.data)
+        response = Response(serializer.data)
+        add_never_cache_headers(response)  # Desactivar caché para esta respuesta
+        return response
     
 def send_invoice_after_creation(func):
     @wraps(func)
@@ -498,7 +502,7 @@ def generar_factura(appointment):
     c.drawString(margen_izquierdo, margen_superior - 260, "Detalle de los Servicios")
 
     # Tabla de productos/servicios
-    data = [['Código', 'Producto / Servicio', 'Cantidad', 'U. Medida', 'Precio Unit.', '% Bonif.', 'Imp. Bonif.', 'Subtotal']]
+    data = [['Código', 'Producto / Servicio', 'Cantidad', 'U. Medida', 'Precio Unit.', 'Subtotal']]
 
     # Agregar los servicios a la tabla
     for service in appointment.services.all():
