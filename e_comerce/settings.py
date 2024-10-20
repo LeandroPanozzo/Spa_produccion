@@ -96,17 +96,17 @@ WSGI_APPLICATION = 'e_comerce.wsgi.application'
 
 DATABASES = {
     
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    #'default': {
+        #'ENGINE': 'django.db.backends.sqlite3',
+        #'NAME': BASE_DIR / 'db.sqlite3',
+    #}
     
     ##Codigo para coneccion de base de datos en produccion
-    # 'default': dj_database_url.config(
+    'default': dj_database_url.config(
     #     # Replace this value with your local database's connection string.
-    #     default='postgresql://postgres:postgres@localhost:5432/mysite',
-    #     conn_max_age=600
-    # )
+         default='postgresql://sentirsebiensql_user:6HriPyNEp5aLWVfjCiqz3aWIRkCx6fM3@dpg-csa62ud6l47c73etq2sg-a.oregon-postgres.render.com/sentirsebiensql',
+         conn_max_age=600
+    )
 }
 
 
