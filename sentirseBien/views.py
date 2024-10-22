@@ -586,7 +586,7 @@ def send_invoice(appointment):
         f"Fecha y Hora: {fecha_hora}\n"
         f"Servicios: {servicios}\n"
         f"Profesional: {profesional_nombre}\n\n"
-        "IMPORTANTE: Recuerde que debe presentarse con la factura adjunta a su reserva"
+        "IMPORTANTE: Recuerde que debe presentarse con la factura adjunta, a su reserva\n"
         "Gracias por confiar en nosotros."
     )
 
