@@ -261,6 +261,14 @@ class ProfessionalViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return self.queryset
+    def list(self, request, *args, **kwargs):
+        # Llamar al método original para obtener la lista de profesionales
+        response = super().list(request, *args, **kwargs)
+        
+        # Agregar los encabezados de no caché a la respuesta
+        #add_never_cache_headers(response)
+        
+        return response
 
 class ClientViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -462,11 +470,11 @@ def generar_factura(appointment):
     # Cuadro para "Factura C" en el centro
     c.setFont("Helvetica-Bold", 18)
     c.rect(margen_izquierdo + 3.5 * cm, margen_superior - 70, 5 * cm, 50)  # Cuadro alrededor de "C"
-    c.drawString(margen_izquierdo + 5.5 * cm, margen_superior - 40, "C")  # Letra C
+    c.drawString(margen_izquierdo + 5.5 * cm, margen_superior - 40, "B")  # Letra B
 
     # Detalles de la factura a la derecha
     c.setFont("Helvetica-Bold", 12)
-    c.drawString(margen_izquierdo + 250, margen_superior - 20, "FACTURA C")
+    c.drawString(margen_izquierdo + 250, margen_superior - 20, "FACTURA B")
     c.setFont("Helvetica", 10)
     c.drawString(margen_izquierdo + 250, margen_superior - 40, "Punto de Venta: 0002")
     c.drawString(margen_izquierdo + 250, margen_superior - 60, f"Comprobante Nro: {appointment.payment.id}")
@@ -481,7 +489,7 @@ def generar_factura(appointment):
     c.setFont("Helvetica", 10)
     c.drawString(margen_izquierdo + 90, margen_superior - 120, "SPA Sentirse Bien   ")
     c.drawString(margen_izquierdo, margen_superior - 140, "Domicilio Comercial:    ")
-    c.drawString(margen_izquierdo + 90, margen_superior - 140, "Calle Falsa 123, Ciudad   ")
+    c.drawString(margen_izquierdo + 90, margen_superior - 140, " Calle Falsa 123, Ciudad   ")
 
     # Condición frente al IVA
     c.drawString(margen_izquierdo, margen_superior - 160, "Condición frente al IVA:   ")
@@ -489,7 +497,6 @@ def generar_factura(appointment):
 
     # Datos del cliente
     c.drawString(margen_izquierdo, margen_superior - 200, "CUIT del Cliente:   ")
-    # Acceder al CUIT del cliente
     c.drawString(margen_izquierdo + 150, margen_superior - 200, f"CUIT: {appointment.client.cuit if appointment.client.cuit else 'Sin CUIT'}")
     c.drawString(margen_izquierdo, margen_superior - 220, "Condición IVA del Cliente:  ")
     c.drawString(margen_izquierdo + 150, margen_superior - 220, "Consumidor Final   ")
@@ -502,13 +509,18 @@ def generar_factura(appointment):
     c.drawString(margen_izquierdo, margen_superior - 260, "Detalle de los Servicios")
 
     # Tabla de productos/servicios
-    data = [['Código', 'Producto / Servicio', 'Cantidad', 'U. Medida', 'Precio Unit.', 'Subtotal']]
-
+    data = [['Código', 'Producto / Servicio', 'Cantidad', 'U. Medida', 'Precio Unit.']]
+    
     # Agregar los servicios a la tabla
     for service in appointment.services.all():
-        data.append([service.id, service.name, '1.00', 'unidades', f'${service.price:.2f}', '0,00', '0,00', f'${service.price:.2f}'])
+        data.append([service.id, service.name, '1.00', 'unidades', f'${service.price:.2f}'])
 
-    tabla = Table(data, colWidths=[2 * cm, 6 * cm, 2 * cm, 2 * cm, 3 * cm, 2 * cm, 2 * cm, 3 * cm])
+    # Calcular la altura de la tabla en base al número de filas
+    num_rows = len(data)
+    table_height = num_rows * 0.5 * cm  # Ajusta el factor de altura según el tamaño de fuente
+    table_start_y = margen_superior - 320 - table_height  # Calcula la posición inicial de la tabla
+
+    tabla = Table(data, colWidths=[2 * cm, 6 * cm, 2 * cm, 2 * cm, 3 * cm])
     tabla.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
@@ -520,20 +532,20 @@ def generar_factura(appointment):
     ]))
 
     tabla.wrapOn(c, ancho, alto)
-    tabla.drawOn(c, margen_izquierdo, margen_superior - 320)
+    tabla.drawOn(c, margen_izquierdo, table_start_y)
 
     # Subtotales y total
     total = sum(service.price for service in appointment.services.all())
     c.setFont("Helvetica-Bold", 10)
-    c.drawString(margen_izquierdo + 350, margen_superior - 400, f"Subtotal: ${total:.2f}")
-    c.drawString(margen_izquierdo + 350, margen_superior - 420, f"Total: ${total:.2f}")
+    c.drawString(margen_izquierdo + 350, table_start_y - 20, f"Subtotal: ${total:.2f}")
+    c.drawString(margen_izquierdo + 350, table_start_y - 40, f"Total: ${total:.2f}")
 
     # Tercera línea divisoria
-    c.line(margen_izquierdo, margen_superior - 440, ancho - margen_izquierdo, margen_superior - 440)
+    c.line(margen_izquierdo, table_start_y - 60, ancho - margen_izquierdo, table_start_y - 60)
 
     # Pie de página
     c.setFont("Helvetica", 8)
-    c.drawString(margen_izquierdo, 1 * cm, "Este comprobante es una Factura C. Autorizado por la AFIP.")
+    c.drawString(margen_izquierdo, 1 * cm, "Este comprobante es una Factura B. Autorizado por la AFIP.")
     c.drawString(margen_izquierdo, 0.5 * cm, "Código de Autorización: XXXXXXXXXXXXX")
 
     c.showPage()
