@@ -6,6 +6,30 @@ from .models import Profile
 
 from .models import Query, Respuesta, Service, Appointment, Announcement, User, Payment, PaymentType
 
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['cuit', 'first_name', 'last_name', 'email', 'password']
+        extra_kwargs = {
+            'password': {'write_only': True, 'required': False}  # No es obligatorio
+        }
+
+    def update(self, instance, validated_data):
+        # Extraemos la contraseña del validated_data
+        password = validated_data.pop('password', None)
+
+        # Actualizamos otros campos
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        # Solo actualizamos la contraseña si se proporciona
+        if password:
+            instance.set_password(password)
+
+        # Guardamos la instancia
+        instance.save()
+        return instance  # Retornamos la instancia actualizada
+
 class UserSerializer(serializers.ModelSerializer):
     
     class Meta:

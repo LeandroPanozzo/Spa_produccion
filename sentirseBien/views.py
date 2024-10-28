@@ -5,14 +5,14 @@ from django.utils import timezone
 from .models import Profile, Post
 #from django.contrib.auth.models import User
 from rest_framework.permissions import AllowAny
-from .serializer import ProfileSerializer, PostSerializer, PaymentSerializer, PaymentTypeSerializer, RegisterSerializer, UserDetailSerializer, CustomTokenObtainPairSerializer, QuerySerializer, ResponseSerializer, AppointmentSerializer, ServiceSerializer, AnnouncementSerializer
+from .serializer import ProfileSerializer, UserUpdateSerializer, PostSerializer, PaymentSerializer, PaymentTypeSerializer, RegisterSerializer, UserDetailSerializer, CustomTokenObtainPairSerializer, QuerySerializer, ResponseSerializer, AppointmentSerializer, ServiceSerializer, AnnouncementSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import serializers
 from django.shortcuts import get_object_or_404
 from django.utils.dateparse import parse_date
 from datetime import timedelta
 from django.utils.dateparse import parse_datetime
-from .permissions import IsStaffAndReadOrEditOnly, IsStaff, IsOwner, IsOwnerOrIsSecretary
+from .permissions import IsStaffAndReadOrEditOnly, IsStaff, IsOwner, IsOwnerOrIsSecretary, IsProfessional
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .models import Query, Respuesta, Appointment, Service, Announcement, User, Payment, PaymentType
@@ -20,7 +20,23 @@ from .models import Query, Respuesta, Appointment, Service, Announcement, User, 
 
 from functools import wraps
 
+class UserEditViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserUpdateSerializer
+    permission_classes = [IsAuthenticated]
 
+    def get_object(self):
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        
+        if serializer.is_valid():
+            serializer.save()  # Guarda los cambios
+            return Response(serializer.data)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PaymentListViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PaymentSerializer
@@ -155,7 +171,7 @@ class ClientsByProfessionalViewSet(viewsets.ViewSet):
     ordenados por horario.
     Solo puede acceder el usuario con el rol `is_owner`.
     """
-    permission_classes = [IsAuthenticated, IsOwner]
+    permission_classes = [IsAuthenticated, IsOwner | IsProfessional]
 
     def list(self, request):
         """

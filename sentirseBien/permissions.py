@@ -58,3 +58,10 @@ class IsOwnerOrIsSecretary(BasePermission):
     """
     def has_permission(self, request, view):
         return request.user.is_authenticated and (request.user.is_secretary or request.user.is_owner)
+    
+class IsProfessional(BasePermission):
+    """
+    Permiso para solo permitir a los profesionales (`is_professional`) acceder a la vista.
+    """
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.is_professional

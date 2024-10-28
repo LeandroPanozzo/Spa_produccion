@@ -3,7 +3,7 @@ from rest_framework import routers
 from rest_framework.documentation import include_docs_urls
 from sentirseBien import views
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import PaymentListViewSet, ProfessionalAppointmentsViewSet, download_invoice, PaymentCreateView, PaymentTypeView, RegisterView, UserDetailView, CustomTokenObtainPairView,QueryViewSet, ProfessionalViewSet, ResponseViewSet, AppointmentViewSet, ServiceViewSet, AnnouncementView, ClientViewSet, ClientsByDayViewSet, ClientsByProfessionalViewSet
+from .views import PaymentListViewSet, UserEditViewSet, ProfessionalAppointmentsViewSet, download_invoice, PaymentCreateView, PaymentTypeView, RegisterView, UserDetailView, CustomTokenObtainPairView,QueryViewSet, ProfessionalViewSet, ResponseViewSet, AppointmentViewSet, ServiceViewSet, AnnouncementView, ClientViewSet, ClientsByDayViewSet, ClientsByProfessionalViewSet
 
 router = routers.DefaultRouter()
 router.register(r'clients', ClientViewSet, basename='client')  # Listado de clientes
@@ -21,7 +21,7 @@ router.register(r'payments', PaymentCreateView, basename='payment')
 router.register(r'payment-types', PaymentTypeView, basename='payment-types')
 router.register(r'professional/appointments', ProfessionalAppointmentsViewSet, basename='professional-appointments')
 router.register(r'payments-list', PaymentListViewSet, basename='payments-list')
-
+router.register(r'user', UserEditViewSet, basename='user')
 
 urlpatterns = [
     path('api/v1/', include(router.urls)),
