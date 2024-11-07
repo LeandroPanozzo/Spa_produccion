@@ -9,7 +9,8 @@ from .models import Query, Respuesta, Service, Appointment, Announcement, User, 
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['cuit', 'first_name', 'last_name', 'email', 'password']
+        fields = ['cuit', 'first_name', 'last_name', 'email', 'password','is_owner', 'is_professional', 'is_secretary']
+        read_only_fields = ['is_owner', 'is_professional', 'is_secretary']
         extra_kwargs = {
             'password': {'write_only': True, 'required': False}  # No es obligatorio
         }
@@ -53,6 +54,8 @@ class PaymentTypeSerializer(serializers.ModelSerializer):
         model = PaymentType
         fields = ['id', 'name']  # Incluye el ID y el nombre del tipo de pago
 
+from decimal import Decimal
+
 class PaymentSerializer(serializers.ModelSerializer):
     appointment = serializers.PrimaryKeyRelatedField(queryset=Appointment.objects.all())  # Asegúrate de que esto está presente
     
@@ -61,17 +64,17 @@ class PaymentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Payment
-        fields = ['id','appointment', 'total_payment', 'payment_type', 'credit_card', 'pin', 'payment_date']
+        fields = ['id','appointment', 'total_payment', 'payment_type', 'credit_card', 'pin', 'payment_date', 'discount']
         extra_kwargs = {'credit_card': {'write_only': True}, 'pin': {'write_only': True}}
 
     def create(self, validated_data):
         # No se necesita hacer pop aquí, ya que ya se valida correctamente como un ID
         appointment_instance = validated_data.pop('appointment')
-
+        discount = validated_data.pop('discount', Decimal('0'))  # Usa 0 como valor por defecto si no hay descuento
         # Calcular el total del pago basado en los servicios asociados
-        total_payment = sum(service.price for service in appointment_instance.services.all())
+        total_payment = sum(service.price for service in appointment_instance.services.all()) * (Decimal('1') - Decimal(discount))
         validated_data['total_payment'] = total_payment
-
+        validated_data['discount'] = discount
         payment = Payment.objects.create(appointment=appointment_instance, **validated_data)
         
         appointment_instance.payment = payment

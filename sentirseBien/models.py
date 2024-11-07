@@ -55,6 +55,7 @@ class PaymentType(models.Model):
 class Payment(models.Model):
     
     total_payment = models.DecimalField(max_digits=20, decimal_places=2)
+    discount = models.DecimalField(max_digits=2, decimal_places=2, default=0.0)
     payment_type = models.ForeignKey(PaymentType, null=False, on_delete=models.CASCADE)
     payment_date = models.DateTimeField(null=False, auto_now_add=True)
     credit_card = models.CharField(max_length=16, null=True, blank=True)

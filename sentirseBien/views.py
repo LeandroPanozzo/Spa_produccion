@@ -21,10 +21,13 @@ from .models import Query, Respuesta, Appointment, Service, Announcement, User, 
 from functools import wraps
 
 class UserEditViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    
     serializer_class = UserUpdateSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        # Limita la vista a que solo se acceda al usuario autenticado
+        return User.objects.filter(id=self.request.user.id)
     def get_object(self):
         return self.request.user
 
@@ -138,7 +141,12 @@ def send_invoice_after_creation(func):
         return response
     return wrapper
 
+from decimal import Decimal
+
+
+
 class PaymentCreateView(viewsets.ViewSet):
+    
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
     permission_classes = [IsAuthenticated]
@@ -150,6 +158,7 @@ class PaymentCreateView(viewsets.ViewSet):
     
     @send_invoice_after_creation
     def create(self, request):
+        
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             try:
@@ -157,7 +166,11 @@ class PaymentCreateView(viewsets.ViewSet):
                 if not appointment.services.exists():
                     return Response({"error": "La cita no tiene servicios asociados"}, status=status.HTTP_400_BAD_REQUEST)
                 
-                total_payment = sum(service.price for service in appointment.services.all())
+                discount = Decimal(request.data.get('discount', 0))
+                
+                total_payment = sum(service.price for service in appointment.services.all()) - (Decimal('1') - discount)
+                
+                
                 serializer.save(total_payment=total_payment)
                 
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -551,13 +564,15 @@ def generar_factura(appointment):
     tabla.drawOn(c, margen_izquierdo, table_start_y)
 
     # Subtotales y total
-    total = sum(service.price for service in appointment.services.all())
+    subtotal = sum(service.price for service in appointment.services.all())
+    total = subtotal * (Decimal('1') - Decimal(appointment.payment.discount))
     c.setFont("Helvetica-Bold", 10)
-    c.drawString(margen_izquierdo + 350, table_start_y - 20, f"Subtotal: ${total:.2f}")
+    c.drawString(margen_izquierdo + 350, table_start_y - 20, f"Subtotal: ${subtotal:.2f}")
     c.drawString(margen_izquierdo + 350, table_start_y - 40, f"Total: ${total:.2f}")
+    c.drawString(margen_izquierdo + 350, table_start_y - 60, f"Descuento: {appointment.payment.discount * 100:.2f} %")
 
     # Tercera línea divisoria
-    c.line(margen_izquierdo, table_start_y - 60, ancho - margen_izquierdo, table_start_y - 60)
+    c.line(margen_izquierdo, table_start_y - 70, ancho - margen_izquierdo, table_start_y - 70)
 
     # Pie de página
     c.setFont("Helvetica", 8)
